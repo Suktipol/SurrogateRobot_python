@@ -12,8 +12,8 @@ img = np.zeros((400, 400), dtype=np.uint8)
 aruco.drawMarker(markerDict, 4, 400, img, 1)'''
 
 #for TCP communication
-TCP_IP_ADDRESS = "127.0.0.1"
-TCP_PORT_NO = 8053
+TCP_IP_ADDRESS = "192.168.1.195"
+TCP_PORT_NO = 8051
 tcpSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tcpSock.connect((TCP_IP_ADDRESS, TCP_PORT_NO))
 
@@ -49,7 +49,7 @@ while(True):
         if (ids != None):
             text = str(status) + ',' + str(ids[0][0])
         else:
-            text = str(status) + ',' + str(ids)
+            text = str(status) + ',' + str(0)
 
         byteMessage = bytes(text, 'utf-8')
         tcpSock.sendall(byteMessage)
