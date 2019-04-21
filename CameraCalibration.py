@@ -29,8 +29,6 @@ for fname in images:
 
         # Draw and display the corners
         img = cv2.drawChessboardCorners(img, (8, 6), corners2, ret)
-        cv2.imshow('img', img)
-        cv2.waitKey(500)
 
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objPoints, imgPoints, gray.shape[::-1], None, None)
 cv2.destroyAllWindows()

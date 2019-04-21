@@ -3,22 +3,25 @@ from cv2 import aruco
 import cv2
 import CameraCalibration as CamC
 import socket
+import time
 
 ###
 ## Create Marker
 ###
 '''markerDict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 img = np.zeros((400, 400), dtype=np.uint8)
-aruco.drawMarker(markerDict, 4, 400, img, 1)'''
+aruco.drawMarker(markerDict, 8, 400, img, 1)'''
 
-#for TCP communication
-TCP_IP_ADDRESS = "192.168.1.195"
+# for TCP communication
+TCP_IP_ADDRESS = "192.168.1.169"
 TCP_PORT_NO = 8051
 tcpSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tcpSock.connect((TCP_IP_ADDRESS, TCP_PORT_NO))
 
-cap = cv2.VideoCapture(0)
+if (tcpSock != None):
+    print ("TCP is connected.")
 
+cap = cv2.VideoCapture(0)
 CamC.init()
 
 markerDict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
@@ -52,7 +55,22 @@ while(True):
             text = str(status) + ',' + str(0)
 
         byteMessage = bytes(text, 'utf-8')
-        tcpSock.sendall(byteMessage)
+
+        #Handle the lost connetion problem
+        try:
+            tcpSock.sendall(byteMessage)
+        except socket.error:
+            connected = False
+            tcpSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            print ("connection lost... reconnecting")
+            while not connected:
+                try:
+                    tcpSock.connect((TCP_IP_ADDRESS, TCP_PORT_NO))
+                    connected = True
+                    print ("re-connection successful")
+                except socket.error:
+                    time.sleep(2)
+
         old_status = status
 
     cv2.imshow('frame', img)
