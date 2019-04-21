@@ -13,13 +13,28 @@ img = np.zeros((400, 400), dtype=np.uint8)
 aruco.drawMarker(markerDict, 8, 400, img, 1)'''
 
 # for TCP communication
-TCP_IP_ADDRESS = "192.168.1.169"
+TCP_IP_ADDRESS = "192.168.1.171"
 TCP_PORT_NO = 8051
-tcpSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-tcpSock.connect((TCP_IP_ADDRESS, TCP_PORT_NO))
 
-if (tcpSock != None):
-    print ("TCP is connected.")
+def ReconnectTcpServer():
+    print ("Connection lost --> re-connecting tcp server...")
+    tcpSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    firstConnection = False
+    while not firstConnection:
+        try:
+            tcpSock.connect((TCP_IP_ADDRESS, TCP_PORT_NO))
+            firstConnection = True
+            print("TCP is connected")
+            return tcpSock
+        except socket.error:
+            print (".")
+            time.sleep(2)
+
+try:
+    tcpSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    tcpSock.connect((TCP_IP_ADDRESS, TCP_PORT_NO))
+except socket.error:
+    tcpSock = ReconnectTcpServer()
 
 cap = cv2.VideoCapture(0)
 CamC.init()
@@ -60,16 +75,7 @@ while(True):
         try:
             tcpSock.sendall(byteMessage)
         except socket.error:
-            connected = False
-            tcpSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print ("connection lost... reconnecting")
-            while not connected:
-                try:
-                    tcpSock.connect((TCP_IP_ADDRESS, TCP_PORT_NO))
-                    connected = True
-                    print ("re-connection successful")
-                except socket.error:
-                    time.sleep(2)
+            tcpSock = ReconnectTcpServer()
 
         old_status = status
 
